@@ -1,12 +1,7 @@
 const bcrypt = require("bcrypt");
 const userModels = require("../models/user");
 const { checkUser } = require("../models/auth");
-const {
-  updateHistoryReceiver,
-  updateHistorySender,
-} = require("../models/transfer");
 const { response } = require("../helpers");
-const cloudinary = require("../helpers/cloudinary");
 
 module.exports = {
   searchAll: async function (req, res) {
@@ -61,16 +56,9 @@ module.exports = {
     try {
       const { id } = req.token;
       const setData = req.body;
-      if (req.file) {
-        const image = await cloudinary.uploader.upload(req.file.path);
-        setData.photo = image.secure_url;
-        await updateHistorySender({ photo_sender: image.secure_url }, id);
-        await updateHistoryReceiver({ photo: image.secure_url }, id);
-      }
 
-      if (req.body.name) {
-        await updateHistorySender({ sender: req.body.name }, id);
-        await updateHistoryReceiver({ receiver: req.body.name }, id);
+      if (req.file) {
+        setData.photo = req.file.filename;
       }
 
       if (setData.currPassword && setData.password) {
@@ -85,9 +73,7 @@ module.exports = {
           setData.password = hash;
           delete setData.currPassword;
         } else {
-          res.status(403).send({
-            message: `Invalid Password`,
-          });
+          res.sendStatus(403);
         }
       }
 
@@ -101,11 +87,7 @@ module.exports = {
       }
     } catch (error) {
       console.log(error);
-      res.status(500).send({
-        message: `${Object.keys(req.file || req.body)} failed to edit : ${
-          error.message
-        }`,
-      });
+      res.sendStatus(500);
     }
   },
   checkPin: async function (req, res) {
