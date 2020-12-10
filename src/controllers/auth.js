@@ -112,6 +112,7 @@ module.exports = {
   resetPassword: (req, res) => {
     const { password, email } = req.body;
     if (password.length >= 6) {
+      console.log(password.length >= 6);
       if (email) {
         authModels
           .resetPassword(password, email)
