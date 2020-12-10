@@ -3,6 +3,7 @@ const app = express();
 const server = require("http").createServer(app);
 const io = require("socket.io")(server);
 
+const db = require("./src/config/mysql");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const routeNav = require("./src/");
@@ -18,17 +19,12 @@ app.use(express.static("public"));
 
 // Socket Io
 io.on("connection", (socket) => {
-  // const itemId = socket.handshake.query.itemId;
-  // console.log("user connect", itemId);
   console.log("user connect");
-  // socket.join(itemId)
   socket.on("initial-user", (id) => {
     console.log("Ini hasil dari intial-user", id);
     if (id) {
       socket.join(id);
-      console.log("Data ini punya si id: ", id);
       db.query(`SELECT balance FROM users WHERE id=${id}`, (err, res) => {
-        console.log(res, "test ya");
         io.to(id).emit("get-data", res[0].balance);
       });
     }
